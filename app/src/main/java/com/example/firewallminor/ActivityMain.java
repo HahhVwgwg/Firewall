@@ -10,22 +10,22 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.VpnService;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.view.MenuItemCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
@@ -43,8 +43,6 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         Log.i(TAG, "Create");
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        setTheme(prefs.getBoolean("dark_theme", false) ? R.style.AppThemeDark : R.style.AppTheme);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -58,29 +56,27 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         // On/off switch
         SwitchCompat swEnabled = (SwitchCompat) view.findViewById(R.id.swEnabled);
         swEnabled.setChecked(prefs.getBoolean("enabled", false));
-        swEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Log.i(TAG, "Switch on");
-                    Intent prepare = VpnService.prepare(ActivityMain.this);
-                    if (prepare == null) {
-                        Log.e(TAG, "Prepare done");
-                        onActivityResult(REQUEST_VPN, RESULT_OK, null);
-                    } else {
-                        Log.i(TAG, "Start intent=" + prepare);
-                        try {
-                            startActivityForResult(prepare, REQUEST_VPN);
-                        } catch (Throwable ex) {
-                            Log.e(TAG, ex.toString() + "\n" + Log.getStackTraceString(ex));
-                            onActivityResult(REQUEST_VPN, RESULT_CANCELED, null);
-                            Toast.makeText(ActivityMain.this, ex.toString(), Toast.LENGTH_LONG).show();
-                        }
-                    }
+        swEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                Log.i(TAG, "Switch on");
+                Intent prepare = VpnService.prepare(ActivityMain.this);
+                if (prepare == null) {
+                    Log.e(TAG, "Prepare done");
+                    onActivityResult(REQUEST_VPN, RESULT_OK, null);
                 } else {
-                    Log.i(TAG, "Switch off");
-                    prefs.edit().putBoolean("enabled", false).apply();
-                    BlackHoleService.stop(ActivityMain.this);
-               }
+                    Log.i(TAG, "Start intent=" + prepare);
+                    try {
+                        startActivityForResult(prepare, REQUEST_VPN);
+                    } catch (Throwable ex) {
+                        Log.e(TAG, ex.toString() + "\n" + Log.getStackTraceString(ex));
+                        onActivityResult(REQUEST_VPN, RESULT_CANCELED, null);
+                        Toast.makeText(ActivityMain.this, ex.toString(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            } else {
+                Log.i(TAG, "Switch off");
+                prefs.edit().putBoolean("enabled", false).apply();
+                BlackHoleService.stop(ActivityMain.this);
             }
         });
 
@@ -170,7 +166,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         }
     }
 
-    @Override+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
@@ -217,9 +213,6 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
 
         MenuItem other = menu.findItem(R.id.menu_whitelist_other);
         other.setChecked(prefs.getBoolean("whitelist_other", true));
-
-        MenuItem dark = menu.findItem(R.id.menu_dark);
-        dark.setChecked(prefs.getBoolean("dark_theme", false));
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -279,11 +272,6 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                         })
                         .setNegativeButton(android.R.string.no, null)
                         .show();
-                return true;
-
-            case R.id.menu_dark:
-                prefs.edit().putBoolean("dark_theme", !prefs.getBoolean("dark_theme", false)).apply();
-                recreate();
                 return true;
 
             case R.id.menu_vpn_settings:

@@ -5,7 +5,7 @@
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_search_white_24dp"
         android:title="@string/menu_search"
-        netguard:actionViewClass="android.support.v7.widget.SearchView"
+        netguard:actionViewClass="androidx.appcompat.widget.SearchView"
         netguard:showAsAction="always|collapseActionView" />
     <item
         android:id="@+id/menu_network"
@@ -28,10 +28,6 @@
     <item
         android:id="@+id/menu_reset_other"
         android:title="@string/menu_reset_other" />
-    <item
-        android:id="@+id/menu_dark"
-        android:checkable="true"
-        android:title="@string/menu_dark" />
     <item
         android:id="@+id/menu_vpn_settings"
         android:title="@string/menu_vpn_settings" />
